@@ -10,6 +10,7 @@ from plotly.figure_factory import utils
 import plotly.graph_objects as go
 
 pd = optional_imports.get_module("pandas")
+modin = optional_imports.get_module("modin")
 
 REQUIRED_GANTT_KEYS = ["Task", "Start", "Finish"]
 
@@ -32,7 +33,9 @@ def validate_gantt(df):
     """
     Validates the inputted dataframe or list
     """
-    if pd and isinstance(df, pd.core.frame.DataFrame):
+    if pd and isinstance(
+        df, (pd.core.frame.DataFrame, modin.pandas.dataframe.DataFrame)
+    ):
         # validate that df has all the required keys
         for key in REQUIRED_GANTT_KEYS:
             if key not in df:

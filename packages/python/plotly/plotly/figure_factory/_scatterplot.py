@@ -7,6 +7,7 @@ from plotly.graph_objs import graph_objs
 from plotly.subplots import make_subplots
 
 pd = optional_imports.get_module("pandas")
+modin = optional_imports.get_module("modin")
 
 DIAG_CHOICES = ["scatter", "histogram", "box"]
 VALID_COLORMAP_TYPES = ["cat", "seq"]
@@ -98,7 +99,7 @@ def validate_scatterplotmatrix(df, index, diag, colormap_type, **kwargs):
         )
 
     # Check if pandas dataframe
-    if not isinstance(df, pd.core.frame.DataFrame):
+    if not isinstance(df, (pd.core.frame.DataFrame, modin.pandas.dataframe.DataFrame)):
         raise exceptions.PlotlyError(
             "Dataframe not inputed. Please "
             "use a pandas dataframe to pro"

@@ -9,6 +9,7 @@ import math
 from numbers import Number
 
 pd = optional_imports.get_module("pandas")
+modin = optional_imports.get_module("modin")
 
 TICK_COLOR = "#969696"
 AXIS_TITLE_COLOR = "#0f0f0f"
@@ -782,7 +783,7 @@ def create_facet_grid(
     if not pd:
         raise ImportError("'pandas' must be installed for this figure_factory.")
 
-    if not isinstance(df, pd.DataFrame):
+    if not isinstance(df, (pd.DataFrame, modin.pandas.dataframe.DataFrame)):
         raise exceptions.PlotlyError("You must input a pandas DataFrame.")
 
     # make sure all columns are of homogenous datatype

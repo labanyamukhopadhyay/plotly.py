@@ -10,6 +10,7 @@ from plotly.subplots import make_subplots
 pd = optional_imports.get_module("pandas")
 np = optional_imports.get_module("numpy")
 scipy_stats = optional_imports.get_module("scipy.stats")
+modin = optional_imports.get_module("modin")
 
 
 def calc_stats(data):
@@ -630,7 +631,9 @@ def create_violin(
         return fig
 
     else:
-        if not isinstance(data, pd.core.frame.DataFrame):
+        if not isinstance(
+            data, (pd.core.frame.DataFrame, modin.pandas.dataframe.DataFrame)
+        ):
             raise exceptions.PlotlyError(
                 "Error. You must use a pandas "
                 "DataFrame if you are using a "

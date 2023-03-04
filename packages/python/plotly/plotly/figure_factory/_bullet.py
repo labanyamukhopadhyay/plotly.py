@@ -11,6 +11,7 @@ import plotly
 import plotly.graph_objs as go
 
 pd = optional_imports.get_module("pandas")
+modin = optional_imports.get_module("modin")
 
 
 def _bullet(
@@ -285,7 +286,7 @@ def create_bullet(
                 "be a dictionary."
             )
 
-    elif not isinstance(data, pd.DataFrame):
+    elif not isinstance(data, (pd.DataFrame, modin.pandas.dataframe.DataFrame)):
         raise exceptions.PlotlyError(
             "You must input a pandas DataFrame, or a list of dictionaries."
         )
@@ -303,7 +304,7 @@ def create_bullet(
             ],
             index=col_names,
         )
-    elif isinstance(data, pd.DataFrame):
+    elif isinstance(data, (pd.DataFrame, modin.pandas.dataframe.DataFrame)):
         df = pd.DataFrame(
             [
                 data[titles].tolist() if titles else [""] * len(data),

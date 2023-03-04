@@ -1,5 +1,6 @@
 import plotly.graph_objs as go
 import plotly.io as pio
+from plotly import exceptions, optional_imports
 from collections import namedtuple, OrderedDict
 from ._special_inputs import IdentityMap, Constant, Range
 from .trendline_functions import ols, lowess, rolling, expanding, ewm
@@ -7,6 +8,9 @@ from .trendline_functions import ols, lowess, rolling, expanding, ewm
 from _plotly_utils.basevalidators import ColorscaleValidator
 from plotly.colors import qualitative, sequential
 import math
+
+modin = optional_imports.get_module("modin")
+
 import pandas as pd
 import numpy as np
 
@@ -1070,6 +1074,8 @@ def to_unindexed_series(x):
     seems to mangle datetime columns. Stripping the index from existing pd.Series is
     required to get things to match up right in the new DataFrame we're building
     """
+    print(type(x))
+    print(x)
     return pd.Series(x).reset_index(drop=True)
 
 
@@ -1090,6 +1096,9 @@ def process_args_into_dataframe(args, wide_mode, var_name, value_name):
     ranges = list()
     wide_id_vars = set()
     reserved_names = _get_reserved_col_names(args) if df_provided else set()
+    # print("process_args_into_dataframe")
+    # print(args)
+    # print(str(list(df_input.columns)))
 
     # Case of functions with a "dimensions" kw: scatter_matrix, parcats, parcoords
     if "dimensions" in args and args["dimensions"] is None:
@@ -1248,6 +1257,7 @@ def process_args_into_dataframe(args, wide_mode, var_name, value_name):
                         "length of  previously-processed arguments %s is %d"
                         % (field, len(argument), str(list(df_output.columns)), length)
                     )
+                print("arg type", type(argument))
                 df_output[str(col_name)] = to_unindexed_series(argument)
 
             # Finally, update argument with column name now that column exists
@@ -1299,11 +1309,16 @@ def build_dataframe(args, constructor):
                 if isinstance(args[field], dict)
                 else list(args[field])
             )
-
-    # Cast data_frame argument to DataFrame (it could be a numpy array, dict etc.)
+    print("build_df1")
+    print(type(args["data_frame"]))
+    # print(args["data_frame"])
+    # # Cast data_frame argument to DataFrame (it could be a numpy array, dict etc.)
     df_provided = args["data_frame"] is not None
     if df_provided and not isinstance(args["data_frame"], pd.DataFrame):
-        args["data_frame"] = pd.DataFrame(args["data_frame"])
+        if isinstance(args["data_frame"], modin.pandas.dataframe.DataFrame):
+            args["data_frame"] = (args["data_frame"])._to_pandas()
+        else:
+            args["data_frame"] = pd.DataFrame(args["data_frame"])
     df_input = args["data_frame"]
 
     # now we handle special cases like wide-mode or x-xor-y specification
@@ -1401,7 +1416,8 @@ def build_dataframe(args, constructor):
         no_color = True
         args["color"] = None
     # now that things have been prepped, we do the systematic rewriting of `args`
-
+    # print("build_dataframe")
+    # print(args["data_frame"])
     df_output, wide_id_vars = process_args_into_dataframe(
         args, wide_mode, var_name, value_name
     )
@@ -1986,7 +2002,8 @@ def make_figure(args, constructor, trace_patch=None, layout_patch=None):
     trace_patch = trace_patch or {}
     layout_patch = layout_patch or {}
     apply_default_cascade(args)
-
+    # print("make_figure")
+    # print(args["data_frame"])
     args = build_dataframe(args, constructor)
     if constructor in [go.Treemap, go.Sunburst, go.Icicle] and args["path"] is not None:
         args = process_dataframe_hierarchy(args)
